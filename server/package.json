@@ -11,9 +11,9 @@
   },
   "keywords": [],
   "author": "",
-  "description": "",
   "dependencies": {
     "npm": "^7.15.0",
     "socket.io": "^4.0.2"
-  }
+  },
+  "description": ""
 }

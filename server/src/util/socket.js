@@ -24,15 +24,15 @@ export default class SocketServer {
                 credentials: false
             }
         })
-        const room = this.#io.of('/room')
-        room.on('connection', socket => {
-            socket.emit('userConnection', 'socket id connected' + socket.id)
+        // const room = this.#io.of('/room')
+        // room.on('connection', socket => {
+        //     socket.emit('userConnection', 'socket id connected' + socket.id)
 
-            socket.on('joinRoom', (dados) => {
-                console.log('dados recebidos', dados)
+        //     socket.on('joinRoom', (dados) => {
+        //         console.log('dados recebidos', dados)
 
-            })
-        })
+        //     })
+        // })
 
         return new Promise((resolve, reject) => {
             server.on('error', reject)
