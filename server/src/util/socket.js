@@ -1,13 +1,28 @@
 import http from 'http';
 import { Server } from 'socket.io'
-
+import { constants } from './constants.js'
 
 
 export default class SocketServer {
     #io
     constructor({ port }) {
         this.port = port 
+        this.namespaces = { }
     }
+    attachEvents({ routeConfig }) {
+        for(const namespace of routeConfig) {
+            for(const [route, { events, eventEmitter }] of Object.entries(namespace)) {
+                const route = this.namespaces[namespace] = this.#io.of(`/${namespace}`)
+                route.on('connection', socket => {
+                    for (const [functionName, functionValue] of events) {
+                        socket.on(functionName, (...args) => functionValue(socket, ...args))
+                    }
+                    eventEmitter.emit(constants.event.USER_CONNECTED, socket)
+                })
+            }
+        }
+    }
+
     async start () {
         const server = http.createServer((request, response) => {
             response.writeHead(200, {

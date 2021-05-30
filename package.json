@@ -1,0 +1,20 @@
+{
+  "name": "semana-javascript-expert04",
+  "version": "1.0.0",
+  "description": "Seja bem vindo(a) à quarta Semana Javascript Expert.Este é o código inicial para iniciar nossa jornada.",
+  "main": "welcome.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/macindex/semana-javascript-expert04.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/macindex/semana-javascript-expert04/issues"
+  },
+  "homepage": "https://github.com/macindex/semana-javascript-expert04#readme"
+}
