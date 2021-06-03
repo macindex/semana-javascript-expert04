@@ -1,9 +1,11 @@
+import Attendee from "../entities/attendee.js"
 import Room from "../entities/room.js"
-import { constants } from "../src/util/constants.js"
+import { constants } from "../util/constants.js"
 
 export default class RoomsController {
     #users = new Map()
-    constructor() { 
+
+    constructor() {
         this.rooms = new Map()
     }
 
@@ -12,21 +14,24 @@ export default class RoomsController {
         console.log('connection stablished with', id)
         this.#updateGlobalUserData(id)
     }
-    joinRoom(socket, {user, room}) {
+    joinRoom(socket, { user, room }) {
 
         const userId = user.id = socket.id
         const roomId = room.id
 
-        // console.log('connection stabilish with', id)
-        
         const updatedUserData = this.#updateGlobalUserData(
-            userId, 
-            user, 
+            userId,
+            user,
             roomId
-            )
-        const updatedRoom = this.#joinUserRoom(socket, updatedUserRoom, room)
-      
+        )
+
+        const updatedRoom = this.#joinUserRoom(socket, updatedUserData, room)
         this.#notifyUsersOnRoom(socket, roomId, updatedUserData)
+        this.#replyWithActiveUsers(socket, updatedRoom.users)
+    }
+    #replyWithActiveUsers(socket, users) {
+        const event = constants.event.LOBBY_UPDATED
+        socket.emit(event, [...users.values()])
     }
     #notifyUsersOnRoom(socket, roomId, user) {
         const event = constants.event.USER_CONNECTED
@@ -37,61 +42,74 @@ export default class RoomsController {
         const roomId = room.id
         const existingRoom = this.rooms.has(roomId)
         const currentRoom = existingRoom ? this.rooms.get(roomId) : {}
-        const currentUser = new Atendee ({
+        const currentUser = new Attendee({
             ...user,
             roomId
         })
-        existingRoom ?
-        [currentRoom.owner, currentRoom.users] :
-        [currentUser, new Set()]
+
+        // definir quem é o dono da sala
+        const [owner, users] = existingRoom ?
+            [currentRoom.owner, currentRoom.users] :
+            [currentUser, new Set()]
 
         const updatedRoom = this.#mapRoom({
             ...currentRoom,
             ...room,
             owner,
-            users: new Set([ ...this.#users, ...[currentUser]])
-
+            users: new Set([...users, ...[currentUser]])
         })
+
         this.rooms.set(roomId, updatedRoom)
 
         socket.join(roomId)
 
         return this.rooms.get(roomId)
     }
-    #mapRoom(room){
+
+    #mapRoom(room) {
         const users = [...room.users.values()]
         const speakersCount = users.filter(user => user.isSpeaker).length
-        const featuredAtendees = new users.slice(0, 3)
-        const mappedRoom = new Room ({
+        const featuredAttendees = users.slice(0, 3)
+        const mappedRoom = new Room({
             ...room,
-            featuredAtendees,
+            featuredAttendees,
             speakersCount,
-            atendeesCount: room.users.size
+            attendeesCount: room.users.size
         })
+
+        return mappedRoom
     }
-
-
     #updateGlobalUserData(userId, userData = {}, roomId = '') {
-        
         const user = this.#users.get(userId) ?? {}
         const existingRoom = this.rooms.has(roomId)
-        const updateUserData = new Atendee ({
+
+        const updatedUserData = new Attendee({
             ...user,
             ...userData,
             roomId,
-            // Se for o único na sala 
+            // se for o unico na sala
             isSpeaker: !existingRoom,
         })
-        this.#users.set(userId, updateUserData)
 
-        return this.#users.get(userId, updatedUserData)
+        this.#users.set(userId, updatedUserData)
+
+        return this.#users.get(userId)
+
     }
 
     getEvents() {
         const functions = Reflect.ownKeys(RoomsController.prototype)
-        .filter(fn => fn !== 'constructor')
-        .map(name => [name, this[name].bind(this)])
+            .filter(fn => fn !== 'constructor')
+            .map(name => [name, this[name].bind(this)])
 
         return new Map(functions)
+
+        /*
+            [
+                ['onNewConnection', this.onNewConnection],
+                ['disconnect', this.disconnect],
+            ]
+        */
+
     }
 }
